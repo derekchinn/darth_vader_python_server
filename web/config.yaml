@@ -1,0 +1,11 @@
+server:
+    HOST_IP: "0.0.0.0"
+    DEBUG: True
+    secret_key: "secure_secret"
+
+routes:
+    web_root: "/"
+    agency_root: "/agency"
+
+generate_app:
+    output_dir: "/Users/darthvader/Public/generate-app"

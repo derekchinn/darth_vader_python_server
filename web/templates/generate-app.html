@@ -1,0 +1,145 @@
+{% extends "base-layout.html" %}
+
+{% block css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='style/generate-app.css') }}" />
+{% endblock %}
+
+{% block content %}
+<div class="outer-container">
+    <h1>So you want to build a media wall....</h1>
+    {% with msgs = get_flashed_messages() %}
+        {% if msgs %}
+        <div class="messages panel panel-success">
+            <div class="panel-heading">Success!</div>
+            <div class="panel-body">
+                To retrieve your brand spankin' new file...<br />
+                <ul>
+                    <li>Go to Finder</li>
+                    <li>In the menu bar, click Go -> Connect to Server (or &#8984;K)</li>
+                    <li>For server address, connect to <span class="bold">afp://10.1.100.24</span> and press "Connect"</li>
+                    <li>U/P: guest/guest</li>
+                    <li>Go to the "generate-app" folder and look for <span class="bold">{{ msgs[0] }}</span></li>
+                    <li>Drag and drop the file onto your desktop or to a folder of your choice</li>
+                    <li>Now throw this file onto a server somewhere and you should be golden</li>
+                </ul>
+            </div>
+        </div>
+        {% else %}
+        <div class="messages panel panel-danger hidden">
+            <div class="panel-heading">Uh Oh...</div>
+            <div class="panel-body">
+            </div>
+        </div>
+        {% endif %}
+    {% endwith %}
+    <div class="form-container">
+        <form class="form-horizontal" action="{{ url_for('generate_app_submit') }}" method="POST">
+            <div class="form-group">
+                <label class="col-sm-2 control-label">Client Name:</label>
+                <div class="col-sm-9">
+                    <input class="form-control" type="text" name="client" placeholder="(Used as part of the filename) e.g. Fox News" />
+                </div>
+            </div>
+            <div class="form-group">
+                <label class="col-sm-2 control-label">Project Name:</label>
+                <div class="col-sm-9">
+                    <input class="form-control" type="text" name="project" placeholder="(Used as part of the filename) e.g. Crazy Project" />
+                </div>
+            </div>
+            <div class="form-group">
+                <label class="col-sm-2 control-label">Network:</label>
+                <div class="col-sm-9">
+                    <input class="form-control" type="text" name="network" placeholder="example.fyre.co" />
+                </div>
+            </div>
+            <div class="form-group">
+                <label class="col-sm-2 control-label">Site ID:</label>
+                <div class="col-sm-9">
+                    <input class="form-control" type="text" name="siteId" placeholder="123456789"/>
+                </div>
+            </div>
+            <div class="form-group">
+                <label class="col-sm-2 control-label">Article ID:</label>
+                <div class="col-sm-5">
+                    <input class="form-control" type="text" name="articleId0" placeholder="custom-12345"/>
+                </div>
+                <div class="col-sm-3">
+                    <select class="form-control" name="viewType0">
+                        <option value="wall">Media Wall</option>
+                        <option value="feed">List Feed</option>
+                    </select>
+                </div>
+                <div class="col-sm-1">
+                    <button class="btn btn-info" data-action="add-widget"><span class="glyphicon glyphicon-plus"></span></button>
+                </div>
+            </div>
+            <div id="additional-items"></div>
+            <input id="widget-form-id" name="widget-form-id" type="hidden" value="0" />
+            <br />
+            <br />
+            <div class="form-group">
+                <input type="submit" class="btn btn-success col-sm-12" value="Generate!" />
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+{% block js %}
+<script>
+    var generateApp = function () {};
+    generateApp.prototype.addWidgetEl = "#additional-items";
+    generateApp.prototype.addWidgetFormEl = function () {
+        var $targetEl = $(this.addWidgetEl);
+        var $itemsAdded = $("#widget-form-id");
+        var id = parseInt($itemsAdded.val(), 10) + 1;
+        var html = '<div class="form-group"><label class="col-sm-2 control-label">Article ID:</label><div class="col-sm-5"><input class="form-control" type="text" name="articleId' + id + '" placeholder="custom-12345"/></div><div class="col-sm-3"><select class="form-control" name="viewType' + id + '"><option value="wall">Media Wall</option><option value="feed">List Feed</option></select></div> <div class="col-sm-1"><button class="btn btn-danger" data-action="remove-widget"><span class="glyphicon glyphicon-minus"></span></button></div></div>';
+
+        $targetEl.append(html);
+        $itemsAdded.val(id);
+    };
+    generateApp.prototype.removeWidgetFormEl = function ($targetEl) {
+        $targetEl.closest(".form-group").remove();
+    };
+
+    $("form").on("click", "button", function () {
+        $this = $(this);
+        var ga =  new generateApp();
+
+        if ($this.attr("data-action") == "add-widget") {
+            ga.addWidgetFormEl();
+        }
+        else if ($this.attr("data-action") == "remove-widget") {
+            ga.removeWidgetFormEl($this);
+        }
+
+        return false;
+    });
+
+    $("form").submit(function() {
+        var $inputEls = $(this).find("input");
+        var err = false;
+
+        $inputEls.each(function(i, el) {
+            if ($(this).val() == "") {
+                var $msgPanel = $(".messages");
+
+                if ($msgPanel.hasClass("panel-success")) {
+                    $msgPanel.removeClass("panel-success").addClass("panel-danger");
+                    $msgPanel.find(".panel-heading").text("Uh Oh...");
+                }
+
+                $msgPanel.find(".panel-body").text("Looks like you're left some fields blank. Please fill out all fields and try again.");
+                $msgPanel.removeClass("hidden");
+                err = true;
+
+                return false;
+            }
+        });
+
+        if (err) {
+            return false;
+        }
+    });
+</script>
+{% endblock %}
