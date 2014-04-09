@@ -1,2 +1,4 @@
 env/
 agency_tools/
+*.pyc
+.DS_Store
